@@ -186,9 +186,9 @@ private enum WorkReader {
                   let type = payload["type"] as? String else { continue }
             let name = payload["name"] as? String ?? ""
             let callID = payload["call_id"] as? String ?? ""
-            if type == "function_call", name == "request_user_input" || name == "request_user_input_async" {
+            if type == "function_call", name == "request_user_input" || name == "request_user_input_async" || name == "request_permissions" {
                 pendingQuestion = true
-                synchronousQuestionCallID = name == "request_user_input" ? callID : nil
+                synchronousQuestionCallID = name == "request_user_input_async" ? nil : callID
             } else if type == "message", payload["role"] as? String == "user" {
                 pendingQuestion = false
                 synchronousQuestionCallID = nil

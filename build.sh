@@ -16,7 +16,30 @@ for size in 16 32 128 256 512; do
   sips -z "$size" "$size" "$ROOT/.build/app-icon-cropped.png" --out "$ICONSET/icon_${size}x${size}.png" >/dev/null
   sips -z "$doubled" "$doubled" "$ROOT/.build/app-icon-cropped.png" --out "$ICONSET/icon_${size}x${size}@2x.png" >/dev/null
 done
-iconutil -c icns "$ICONSET" -o "$APP/Contents/Resources/AppIcon.icns"
+if ! iconutil -c icns "$ICONSET" -o "$APP/Contents/Resources/AppIcon.icns" 2>/dev/null; then
+  # 일부 macOS 버전에서 정상 PNG iconset도 iconutil이 거부한다.
+  python3 - "$ICONSET" "$APP/Contents/Resources/AppIcon.icns" <<'PY'
+from pathlib import Path
+import struct
+import sys
+
+source, output = map(Path, sys.argv[1:])
+chunks = []
+for kind, name in (
+    ("icp4", "icon_16x16.png"),
+    ("icp5", "icon_32x32.png"),
+    ("icp6", "icon_32x32@2x.png"),
+    ("ic07", "icon_128x128.png"),
+    ("ic08", "icon_256x256.png"),
+    ("ic09", "icon_512x512.png"),
+    ("ic10", "icon_512x512@2x.png"),
+):
+    data = (source / name).read_bytes()
+    chunks.append(kind.encode("ascii") + struct.pack(">I", len(data) + 8) + data)
+body = b"".join(chunks)
+output.write_bytes(b"icns" + struct.pack(">I", len(body) + 8) + body)
+PY
+fi
 cp "$ROOT/assets/crt-bot.png" "$APP/Contents/Resources/MenuBarIcon.png"
 cp "$ROOT/assets/crt-bot@2x.png" "$APP/Contents/Resources/MenuBarIcon@2x.png"
 cp "$ROOT/assets/pixel-chara-clean.png" "$APP/Contents/Resources/PixelChara.png"
