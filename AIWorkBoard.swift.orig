@@ -18,47 +18,31 @@ private enum WorkStatus: String {
     }
 }
 
-private enum AppTheme: String, CaseIterable {
-    case basic, classic, tamagotchi
+private enum AppTheme: String {
+    case classic, tamagotchi
 
-    var next: AppTheme {
-        let all = Self.allCases
-        return all[(all.firstIndex(of: self)! + 1) % all.count]
-    }
-    var label: String {
-        switch self {
-        case .basic: return "BASIC"
-        case .classic: return "SHIZUKU"
-        case .tamagotchi: return "TAMA"
-        }
-    }
+    var next: AppTheme { self == .classic ? .tamagotchi : .classic }
+    var label: String { self == .classic ? "CLASSIC" : "TAMA" }
 }
 
 private enum Retro {
     static var theme = AppTheme(rawValue: UserDefaults.standard.string(forKey: "theme") ?? "") ?? .classic
 
-    // basic 테마는 장식 없는 담백한 회색 계열. 값을 안 주면 classic 색을 그대로 쓴다.
-    private static func pick(_ classic: Color, _ tama: Color, basic: Color? = nil) -> Color {
-        switch theme {
-        case .tamagotchi: return tama
-        case .basic: return basic ?? classic
-        case .classic: return classic
-        }
-    }
+    private static func pick(_ classic: Color, _ tama: Color) -> Color { theme == .tamagotchi ? tama : classic }
 
-    static var desktop: Color { pick(Color(red: 0.04, green: 0.63, blue: 0.91), Color(red: 0.77, green: 0.81, blue: 0.64), basic: Color(red: 0.93, green: 0.93, blue: 0.94)) }
+    static var desktop: Color { pick(Color(red: 0.04, green: 0.63, blue: 0.91), Color(red: 0.77, green: 0.81, blue: 0.64)) }
     static var background: Color { desktop }
     static var blush: Color { pick(Color(red: 0.96, green: 0.87, blue: 0.86), Color(red: 0.96, green: 0.80, blue: 0.84)) }
-    static var cream: Color { pick(Color(red: 0.945, green: 0.945, blue: 0.93), Color(red: 0.90, green: 0.93, blue: 0.80), basic: Color.white) }   // 버튼·배지·탭 바탕
-    static var body: Color { pick(Color(red: 0.91, green: 0.91, blue: 0.89), Color(red: 0.84, green: 0.88, blue: 0.70), basic: Color(red: 0.97, green: 0.97, blue: 0.97)) }      // 창 본문 바탕 (다마고치: LCD 연두)
-    static var bar: Color { pick(Color(red: 0.227, green: 0.247, blue: 0.259), Color(red: 0.24, green: 0.27, blue: 0.19), basic: Color(red: 0.20, green: 0.21, blue: 0.23)) }    // 제목줄·선택 탭
-    static var navy: Color { pick(Color(red: 0.137, green: 0.153, blue: 0.165), Color(red: 0.14, green: 0.16, blue: 0.10), basic: Color(red: 0.11, green: 0.12, blue: 0.13)) }   // 윤곽선·글자색
+    static var cream: Color { pick(Color(red: 0.945, green: 0.945, blue: 0.93), Color(red: 0.90, green: 0.93, blue: 0.80)) }   // 버튼·배지·탭 바탕
+    static var body: Color { pick(Color(red: 0.91, green: 0.91, blue: 0.89), Color(red: 0.84, green: 0.88, blue: 0.70)) }      // 창 본문 바탕 (다마고치: LCD 연두)
+    static var bar: Color { pick(Color(red: 0.227, green: 0.247, blue: 0.259), Color(red: 0.24, green: 0.27, blue: 0.19)) }    // 제목줄·선택 탭
+    static var navy: Color { pick(Color(red: 0.137, green: 0.153, blue: 0.165), Color(red: 0.14, green: 0.16, blue: 0.10)) }   // 윤곽선·글자색
     static var pink: Color { pick(Color(red: 0.96, green: 0.70, blue: 0.75), Color(red: 0.97, green: 0.66, blue: 0.74)) }
     static var mint: Color { pick(Color(red: 0.70, green: 0.88, blue: 0.82), Color(red: 0.62, green: 0.86, blue: 0.78)) }
     static var yellow: Color { pick(Color(red: 0.98, green: 0.86, blue: 0.45), Color(red: 0.99, green: 0.85, blue: 0.40)) }
     static var blue: Color { pick(Color(red: 0.62, green: 0.82, blue: 0.92), Color(red: 0.60, green: 0.80, blue: 0.93)) }
     static var orange: Color { pick(Color(red: 0.96, green: 0.62, blue: 0.35), Color(red: 0.96, green: 0.58, blue: 0.32)) }
-    static var muted: Color { pick(Color(red: 0.424, green: 0.451, blue: 0.467), Color(red: 0.36, green: 0.41, blue: 0.27), basic: Color(red: 0.45, green: 0.46, blue: 0.48)) }
+    static var muted: Color { pick(Color(red: 0.424, green: 0.451, blue: 0.467), Color(red: 0.36, green: 0.41, blue: 0.27)) }
 
     static func font(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {
         .system(size: size, weight: weight, design: .monospaced)
@@ -274,7 +258,7 @@ private enum WorkReader {
 
             if (type == "custom_tool_call" || type == "function_call"), !callID.isEmpty,
                let input = (payload["input"] ?? payload["arguments"]) as? String,
-               input.range(of: #"(?:["'])?sandbox_permissions(?:["'])?\s*:\s*["']require_escalated["']"#, options: .regularExpression) != nil {
+               input.contains("\"sandbox_permissions\":\"require_escalated\"") {
                 approvalCalls.insert(callID)
             } else if (type == "custom_tool_call_output" || type == "function_call_output"), !callID.isEmpty {
                 approvalCalls.remove(callID)
@@ -392,7 +376,6 @@ private final class WorkStore: ObservableObject {
     @Published private var seen: [String: Double]
     private let baseline: Double
     private var timer: Timer?
-    private var lastUsageRefresh: Date?
 
     init() {
         let defaults = UserDefaults.standard
@@ -402,7 +385,7 @@ private final class WorkStore: ObservableObject {
         }
         baseline = defaults.double(forKey: "seenBaseline")
         refresh()
-        timer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] _ in self?.refresh() }
+        timer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { [weak self] _ in self?.refresh() }
     }
 
     func isUnseen(_ item: WorkItem) -> Bool {
@@ -415,13 +398,9 @@ private final class WorkStore: ObservableObject {
     }
 
     func refresh() {
-        let now = Date()
         items = WorkReader.load()
-        if lastUsageRefresh.map({ now.timeIntervalSince($0) >= 30 }) ?? true {
-            codexUsage = WorkReader.codexUsage()
-            lastUsageRefresh = now
-        }
-        updatedAt = now
+        codexUsage = WorkReader.codexUsage()
+        updatedAt = Date()
     }
 }
 
@@ -448,7 +427,7 @@ private struct WorkBoardView: View {
                     if store.theme == .tamagotchi {
                         HStack(spacing: 6) {
                             Sprite(name: "icon-heart", height: 10)
-                            Text("AI DESKTOP").font(Retro.font(11, weight: .black))
+                            Text("AI PET ROOM").font(Retro.font(11, weight: .black))
                             Sprite(name: "icon-heart", height: 10)
                         }
                     } else {
@@ -654,11 +633,7 @@ private struct GridBackdrop: View {
     let theme: AppTheme
 
     var body: some View {
-        switch theme {
-        case .tamagotchi: tamagotchi
-        case .classic: classic
-        case .basic: Retro.desktop
-        }
+        if theme == .tamagotchi { tamagotchi } else { classic }
     }
 
     // LCD 화면 느낌의 연두 바탕 + 도트 질감 위에 다마고치들이 흩어져 있다 (목록 뒤로 비친다)
