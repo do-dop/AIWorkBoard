@@ -7,8 +7,20 @@ Mac 메뉴 막대에서 Codex, Claude, Antigravity 작업 상태를 모아 보�
 ## 기능
 
 - 메뉴 막대 아이콘을 누르면 Codex·Claude·Antigravity 작업 현황 팝업이 열립니다.
-- 승인/확인이 필요한 작업이 있으면 아이콘이 통통 튑니다. Codex의 질문·권한 요청도 로컬 대화 기록에서 감지하며, 상태는 약 10초마다 갱신됩니다.
+- 승인/확인이 필요한 작업이 있으면 아이콘이 통통 튑니다. Codex의 질문·권한 요청도 로컬 대화 기록에서 감지하며, 상태는 약 2초마다 갱신됩니다.
 - 안 본 완료 작업이 있으면 아이콘에 주황색 점이 표시됩니다.
+- 팝업 하단의 `THEME` 버튼으로 테마를 바꿉니다 (BASIC → SHIZUKU → TAMA). 선택은 저장됩니다.
+
+## 테마
+
+<p align="center">
+  <img src="docs/screenshot-basic.png" alt="BASIC 테마" width="300">
+  <img src="docs/screenshot-tamagotchi.png" alt="TAMA 테마" width="300">
+</p>
+
+- **BASIC** — 장식 없는 담백한 회색 계열
+- **SHIZUKU** — 기본 화면 (위 첫 스크린샷)
+- **TAMA** — LCD 연두 바탕에 다마고치 도트 캐릭터
 
 ## 설치
 

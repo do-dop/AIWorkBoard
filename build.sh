@@ -44,6 +44,8 @@ cp "$ROOT/assets/crt-bot.png" "$APP/Contents/Resources/MenuBarIcon.png"
 cp "$ROOT/assets/crt-bot@2x.png" "$APP/Contents/Resources/MenuBarIcon@2x.png"
 cp "$ROOT/assets/pixel-chara-clean.png" "$APP/Contents/Resources/PixelChara.png"
 cp "$ROOT/assets/pixel-spider.png" "$APP/Contents/Resources/PixelSpider.png"
+mkdir -p "$APP/Contents/Resources/Tamagotchi"
+cp "$ROOT"/assets/tamagotchi/*.png "$APP/Contents/Resources/Tamagotchi/"
 
 sips -c 500 500 "$ROOT/assets/openai-mark.png" --out "$ROOT/.build/openai-cropped.png" >/dev/null
 sips -z 96 96 "$ROOT/.build/openai-cropped.png" --out "$APP/Contents/Resources/OpenAIMark.png" >/dev/null

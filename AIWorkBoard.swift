@@ -199,7 +199,7 @@ private enum WorkReader {
 
             if (type == "custom_tool_call" || type == "function_call"), !callID.isEmpty,
                let input = (payload["input"] ?? payload["arguments"]) as? String,
-               input.contains("\"sandbox_permissions\":\"require_escalated\"") {
+               input.range(of: #"(?:["'])?sandbox_permissions(?:["'])?\s*:\s*["']require_escalated["']"#, options: .regularExpression) != nil {
                 approvalCalls.insert(callID)
             } else if (type == "custom_tool_call_output" || type == "function_call_output"), !callID.isEmpty {
                 approvalCalls.remove(callID)
@@ -311,6 +311,7 @@ private final class WorkStore: ObservableObject {
     @Published private var seen: [String: Double]
     private let baseline: Double
     private var timer: Timer?
+    private var lastUsageRefresh: Date?
 
     init() {
         let defaults = UserDefaults.standard
@@ -320,7 +321,7 @@ private final class WorkStore: ObservableObject {
         }
         baseline = defaults.double(forKey: "seenBaseline")
         refresh()
-        timer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { [weak self] _ in self?.refresh() }
+        timer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] _ in self?.refresh() }
     }
 
     func isUnseen(_ item: WorkItem) -> Bool {
@@ -333,9 +334,13 @@ private final class WorkStore: ObservableObject {
     }
 
     func refresh() {
+        let now = Date()
         items = WorkReader.load()
-        codexUsage = WorkReader.codexUsage()
-        updatedAt = Date()
+        if lastUsageRefresh.map({ now.timeIntervalSince($0) >= 30 }) ?? true {
+            codexUsage = WorkReader.codexUsage()
+            lastUsageRefresh = now
+        }
+        updatedAt = now
     }
 }
 
