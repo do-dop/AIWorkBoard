@@ -427,6 +427,7 @@ private final class WorkStore: ObservableObject {
 
 private struct WorkBoardView: View {
     @ObservedObject var store: WorkStore
+    var onClose: () -> Void = {}   // × 버튼: 창만 닫는다 (종료는 QUIT)
     private enum Tab { case active, unseen, recent }
     @State private var tab = Tab.active
 
@@ -482,7 +483,7 @@ private struct WorkBoardView: View {
                         }
 
                         Button {
-                            NSApp.terminate(nil)
+                            onClose()
                         } label: {
                             Text("×")
                                 .font(Retro.font(12, weight: .black))
@@ -492,7 +493,7 @@ private struct WorkBoardView: View {
                                 .overlay(Rectangle().stroke(Retro.cream, lineWidth: 1.2))
                         }
                         .buttonStyle(.plain)
-                        .help("종료")
+                        .help("닫기")
                     }
                     .padding(.horizontal, 10).frame(height: 32)
                     .background(Retro.bar)
@@ -919,12 +920,12 @@ private final class AppDelegate: NSObject, NSApplicationDelegate {
         updateIcon()
         popover.contentSize = NSSize(width: 408, height: 530)
         popover.behavior = .transient
-        popover.contentViewController = NSHostingController(rootView: WorkBoardView(store: store))
+        popover.contentViewController = NSHostingController(rootView: WorkBoardView(store: store, onClose: { [weak self] in self?.popover.performClose(nil) }))
         if preview {
             let window = NSWindow(contentRect: NSRect(x: 200, y: 200, width: 408, height: 530),
                                   styleMask: [.titled, .closable], backing: .buffered, defer: false)
             window.title = "AI Work Board Preview"
-            window.contentViewController = NSHostingController(rootView: WorkBoardView(store: store))
+            window.contentViewController = NSHostingController(rootView: WorkBoardView(store: store, onClose: { [weak window] in window?.close() }))
             window.makeKeyAndOrderFront(nil)
             NSApp.activate(ignoringOtherApps: true)
             previewWindow = window
