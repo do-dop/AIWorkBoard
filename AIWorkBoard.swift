@@ -133,6 +133,7 @@ private struct CodexUsage {
 
 private enum WorkReader {
     private static var interactionCache: [String: (size: UInt64, waiting: Bool)] = [:]
+    private static var elevatedTerminalCache: [String: [Int: Bool]] = [:]
     // Codex 세션 로그(rollout)에 남는 rate_limits에서 5시간/주간 사용률을 읽는다. 창이 이미 리셋됐으면 0%로 본다.
     static func codexUsage() -> CodexUsage? {
         let root = URL(fileURLWithPath: NSHomeDirectory() + "/.codex/sessions")
@@ -254,6 +255,9 @@ private enum WorkReader {
         var pendingQuestion = false
         var synchronousQuestionCallID: String?
         var approvalCalls = Set<String>()
+        var terminalCalls = Set<String>()
+        var terminalCells = Set<String>()
+        var waitCalls: [String: String] = [:]
         for line in data.split(separator: UInt8(ascii: "\n")).dropFirst(start > 0 ? 1 : 0) {
             guard let object = (try? JSONSerialization.jsonObject(with: Data(line))) as? [String: Any],
                   object["type"] as? String == "response_item",
@@ -274,15 +278,82 @@ private enum WorkReader {
 
             if (type == "custom_tool_call" || type == "function_call"), !callID.isEmpty,
                let input = (payload["input"] ?? payload["arguments"]) as? String,
-               input.range(of: #"(?:["'])?sandbox_permissions(?:["'])?\s*:\s*["']require_escalated["']"#, options: .regularExpression) != nil {
+               (input.range(of: #"(?:["'])?sandbox_permissions(?:["'])?\s*:\s*["']require_escalated["']"#, options: .regularExpression) != nil
+                || (name == "js" && input.contains(".setFiles("))) {
                 approvalCalls.insert(callID)
             } else if (type == "custom_tool_call_output" || type == "function_call_output"), !callID.isEmpty {
                 approvalCalls.remove(callID)
             }
+
+            // An escalated terminal can ask for approval again when write_stdin is used.
+            // The outer exec may yield a cell, so keep it pending through the matching wait.
+            if type == "custom_tool_call" || type == "function_call" {
+                let input = (payload["input"] ?? payload["arguments"]) as? String ?? ""
+                if !callID.isEmpty, input.contains("write_stdin"),
+                   let session = firstNumber(in: input, pattern: #"session_id\s*:\s*(\d+)"#),
+                   isElevatedTerminal(session, rolloutPath: rolloutPath) {
+                    terminalCalls.insert(callID)
+                }
+                if name == "wait", !callID.isEmpty,
+                   let cell = firstNumber(in: input, pattern: #"["']cell_id["']\s*:\s*["']?(\d+)"#),
+                   terminalCells.contains(String(cell)) {
+                    waitCalls[callID] = String(cell)
+                }
+            } else if type == "custom_tool_call_output" || type == "function_call_output" {
+                let output = String(describing: payload["output"] ?? "")
+                if terminalCalls.remove(callID) != nil,
+                   let cell = firstNumber(in: output, pattern: #"Script running with cell ID\s+(\d+)"#) {
+                    terminalCells.insert(String(cell))
+                }
+                if let cell = waitCalls.removeValue(forKey: callID) {
+                    terminalCells.remove(cell)
+                    if output.contains("Script running with cell ID") { terminalCells.insert(cell) }
+                }
+            }
         }
-        let waiting = pendingQuestion || !approvalCalls.isEmpty
+        let waiting = pendingQuestion || !approvalCalls.isEmpty || !terminalCalls.isEmpty || !terminalCells.isEmpty
         interactionCache[rolloutPath] = (size, waiting)
         return waiting
+    }
+
+    private static func firstNumber(in text: String, pattern: String) -> Int? {
+        guard let regex = try? NSRegularExpression(pattern: pattern),
+              let match = regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
+              let range = Range(match.range(at: 1), in: text) else { return nil }
+        return Int(text[range])
+    }
+
+    private static func isElevatedTerminal(_ session: Int, rolloutPath: String) -> Bool {
+        if let known = elevatedTerminalCache[rolloutPath]?[session] { return known }
+        // This lookup is needed only when a terminal input is pending. A session can
+        // have been launched earlier than the one-megabyte tail used above.
+        guard let data = FileManager.default.contents(atPath: rolloutPath) else { return false }
+        var elevatedCalls = Set<String>()
+        var elevated = false
+        for line in data.split(separator: UInt8(ascii: "\n")) {
+            guard let object = (try? JSONSerialization.jsonObject(with: Data(line))) as? [String: Any],
+                  object["type"] as? String == "response_item",
+                  let payload = object["payload"] as? [String: Any],
+                  let type = payload["type"] as? String,
+                  let callID = payload["call_id"] as? String else { continue }
+            if type == "custom_tool_call" || type == "function_call" {
+                let input = (payload["input"] ?? payload["arguments"]) as? String ?? ""
+                if input.contains("exec_command"), input.contains("require_escalated") {
+                    elevatedCalls.insert(callID)
+                }
+            } else if type == "custom_tool_call_output" || type == "function_call_output" {
+                if elevatedCalls.remove(callID) != nil {
+                    let output = String(describing: payload["output"] ?? "")
+                    if output.contains("session_id"),
+                       firstNumber(in: output, pattern: #"session_id[^0-9]{0,8}(\d+)"#) == session {
+                        elevated = true
+                        break
+                    }
+                }
+            }
+        }
+        elevatedTerminalCache[rolloutPath, default: [:]][session] = elevated
+        return elevated
     }
 
     private static func latestTurnStatus(_ db: OpaquePointer?, id: String) -> String {
