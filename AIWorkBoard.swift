@@ -19,7 +19,7 @@ private enum WorkStatus: String {
 }
 
 private enum AppTheme: String, CaseIterable {
-    case basic, classic, tamagotchi
+    case basic, classic, tamagotchi, eva, chiikawa
 
     var next: AppTheme {
         let all = Self.allCases
@@ -30,6 +30,16 @@ private enum AppTheme: String, CaseIterable {
         case .basic: return "BASIC"
         case .classic: return "SHIZUKU"
         case .tamagotchi: return "TAMA"
+        case .eva: return "EVA"
+        case .chiikawa: return "CHIIKAWA"
+        }
+    }
+    var exeName: String {
+        switch self {
+        case .tamagotchi: return "AI_TAMAGOTCHI.EXE"
+        case .eva: return "AI_NERV.EXE"
+        case .chiikawa: return "AI_CHIIKAWA.EXE"
+        default: return "AI_WORKBOARD.EXE"
         }
     }
 }
@@ -38,27 +48,29 @@ private enum Retro {
     static var theme = AppTheme(rawValue: UserDefaults.standard.string(forKey: "theme") ?? "") ?? .classic
 
     // basic 테마는 장식 없는 담백한 회색 계열. 값을 안 주면 classic 색을 그대로 쓴다.
-    private static func pick(_ classic: Color, _ tama: Color, basic: Color? = nil) -> Color {
+    private static func pick(_ classic: Color, _ tama: Color, basic: Color? = nil, eva: Color? = nil, chii: Color? = nil) -> Color {
         switch theme {
         case .tamagotchi: return tama
+        case .eva: return eva ?? classic
+        case .chiikawa: return chii ?? classic
         case .basic: return basic ?? classic
         case .classic: return classic
         }
     }
 
-    static var desktop: Color { pick(Color(red: 0.04, green: 0.63, blue: 0.91), Color(red: 0.77, green: 0.81, blue: 0.64), basic: Color(red: 0.93, green: 0.93, blue: 0.94)) }
+    static var desktop: Color { pick(Color(red: 0.04, green: 0.63, blue: 0.91), Color(red: 0.77, green: 0.81, blue: 0.64), basic: Color(red: 0.93, green: 0.93, blue: 0.94), eva: Color(red: 0.74, green: 0.84, blue: 0.93), chii: Color(red: 1.00, green: 0.94, blue: 0.74)) }
     static var background: Color { desktop }
-    static var blush: Color { pick(Color(red: 0.96, green: 0.87, blue: 0.86), Color(red: 0.96, green: 0.80, blue: 0.84)) }
-    static var cream: Color { pick(Color(red: 0.945, green: 0.945, blue: 0.93), Color(red: 0.90, green: 0.93, blue: 0.80), basic: Color.white) }   // 버튼·배지·탭 바탕
-    static var body: Color { pick(Color(red: 0.91, green: 0.91, blue: 0.89), Color(red: 0.84, green: 0.88, blue: 0.70), basic: Color(red: 0.97, green: 0.97, blue: 0.97)) }      // 창 본문 바탕 (다마고치: LCD 연두)
-    static var bar: Color { pick(Color(red: 0.227, green: 0.247, blue: 0.259), Color(red: 0.24, green: 0.27, blue: 0.19), basic: Color(red: 0.20, green: 0.21, blue: 0.23)) }    // 제목줄·선택 탭
-    static var navy: Color { pick(Color(red: 0.137, green: 0.153, blue: 0.165), Color(red: 0.14, green: 0.16, blue: 0.10), basic: Color(red: 0.11, green: 0.12, blue: 0.13)) }   // 윤곽선·글자색
-    static var pink: Color { pick(Color(red: 0.96, green: 0.70, blue: 0.75), Color(red: 0.97, green: 0.66, blue: 0.74)) }
-    static var mint: Color { pick(Color(red: 0.70, green: 0.88, blue: 0.82), Color(red: 0.62, green: 0.86, blue: 0.78)) }
-    static var yellow: Color { pick(Color(red: 0.98, green: 0.86, blue: 0.45), Color(red: 0.99, green: 0.85, blue: 0.40)) }
-    static var blue: Color { pick(Color(red: 0.62, green: 0.82, blue: 0.92), Color(red: 0.60, green: 0.80, blue: 0.93)) }
-    static var orange: Color { pick(Color(red: 0.96, green: 0.62, blue: 0.35), Color(red: 0.96, green: 0.58, blue: 0.32)) }
-    static var muted: Color { pick(Color(red: 0.424, green: 0.451, blue: 0.467), Color(red: 0.36, green: 0.41, blue: 0.27), basic: Color(red: 0.45, green: 0.46, blue: 0.48)) }
+    static var blush: Color { pick(Color(red: 0.96, green: 0.87, blue: 0.86), Color(red: 0.96, green: 0.80, blue: 0.84), eva: Color(red: 0.86, green: 0.82, blue: 0.95), chii: Color(red: 1.00, green: 0.90, blue: 0.70)) }
+    static var cream: Color { pick(Color(red: 0.945, green: 0.945, blue: 0.93), Color(red: 0.90, green: 0.93, blue: 0.80), basic: Color.white, eva: Color(red: 0.95, green: 0.97, blue: 0.99), chii: Color(red: 1.00, green: 0.99, blue: 0.92)) }   // 버튼·배지·탭 바탕
+    static var body: Color { pick(Color(red: 0.91, green: 0.91, blue: 0.89), Color(red: 0.84, green: 0.88, blue: 0.70), basic: Color(red: 0.97, green: 0.97, blue: 0.97), eva: Color(red: 0.89, green: 0.94, blue: 0.97), chii: Color(red: 1.00, green: 0.97, blue: 0.86)) }      // 창 본문 바탕 (다마고치: LCD 연두)
+    static var bar: Color { pick(Color(red: 0.227, green: 0.247, blue: 0.259), Color(red: 0.24, green: 0.27, blue: 0.19), basic: Color(red: 0.20, green: 0.21, blue: 0.23), eva: Color(red: 0.24, green: 0.17, blue: 0.37), chii: Color(red: 0.78, green: 0.58, blue: 0.18)) }    // 제목줄·선택 탭
+    static var navy: Color { pick(Color(red: 0.137, green: 0.153, blue: 0.165), Color(red: 0.14, green: 0.16, blue: 0.10), basic: Color(red: 0.11, green: 0.12, blue: 0.13), eva: Color(red: 0.09, green: 0.10, blue: 0.20), chii: Color(red: 0.31, green: 0.23, blue: 0.14)) }   // 윤곽선·글자색
+    static var pink: Color { pick(Color(red: 0.96, green: 0.70, blue: 0.75), Color(red: 0.97, green: 0.66, blue: 0.74), eva: Color(red: 0.78, green: 0.70, blue: 0.90), chii: Color(red: 0.98, green: 0.76, blue: 0.82)) }
+    static var mint: Color { pick(Color(red: 0.70, green: 0.88, blue: 0.82), Color(red: 0.62, green: 0.86, blue: 0.78), eva: Color(red: 0.56, green: 0.82, blue: 0.94), chii: Color(red: 0.66, green: 0.83, blue: 0.95)) }
+    static var yellow: Color { pick(Color(red: 0.98, green: 0.86, blue: 0.45), Color(red: 0.99, green: 0.85, blue: 0.40), eva: Color(red: 0.97, green: 0.66, blue: 0.30), chii: Color(red: 0.99, green: 0.89, blue: 0.50)) }
+    static var blue: Color { pick(Color(red: 0.62, green: 0.82, blue: 0.92), Color(red: 0.60, green: 0.80, blue: 0.93), chii: Color(red: 0.70, green: 0.85, blue: 0.96)) }
+    static var orange: Color { pick(Color(red: 0.96, green: 0.62, blue: 0.35), Color(red: 0.96, green: 0.58, blue: 0.32), eva: Color(red: 0.95, green: 0.50, blue: 0.15), chii: Color(red: 0.97, green: 0.62, blue: 0.40)) }
+    static var muted: Color { pick(Color(red: 0.424, green: 0.451, blue: 0.467), Color(red: 0.36, green: 0.41, blue: 0.27), basic: Color(red: 0.45, green: 0.46, blue: 0.48), eva: Color(red: 0.35, green: 0.40, blue: 0.55), chii: Color(red: 0.56, green: 0.46, blue: 0.30)) }
 
     static func font(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {
         .system(size: size, weight: weight, design: .monospaced)
@@ -69,12 +81,26 @@ private enum Retro {
 private enum SpriteCache {
     static var images: [String: NSImage] = [:]
 
-    static func image(_ name: String) -> NSImage? {
-        if let cached = images[name] { return cached }
-        guard let path = Bundle.main.path(forResource: name, ofType: "png", inDirectory: "Tamagotchi"),
+    static func image(_ name: String, dir: String) -> NSImage? {
+        if let cached = images[dir + "/" + name] { return cached }
+        guard let path = Bundle.main.path(forResource: name, ofType: "png", inDirectory: dir),
               let image = NSImage(contentsOfFile: path) else { return nil }
-        images[name] = image
-        return image
+        let sharp = upscaled(image) ?? image
+        images[dir + "/" + name] = sharp
+        return sharp
+    }
+
+    // 도트 원본(수십 픽셀)을 줄여 그리면 번지므로, 먼저 정수 배율(nearest)로 크게 키워 둔다.
+    // 이렇게 하면 어떤 크기로 그려도 픽셀 경계가 또렷하게 유지된다.
+    private static func upscaled(_ image: NSImage) -> NSImage? {
+        guard let cg = image.cgImage(forProposedRect: nil, context: nil, hints: nil) else { return nil }
+        let scale = max(1, Int((640 / CGFloat(max(cg.width, cg.height))).rounded(.up)))
+        guard let ctx = CGContext(data: nil, width: cg.width * scale, height: cg.height * scale, bitsPerComponent: 8, bytesPerRow: 0,
+                                  space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return nil }
+        ctx.interpolationQuality = .none
+        ctx.draw(cg, in: CGRect(x: 0, y: 0, width: cg.width * scale, height: cg.height * scale))
+        guard let big = ctx.makeImage() else { return nil }
+        return NSImage(cgImage: big, size: NSSize(width: cg.width, height: cg.height))
     }
 }
 
@@ -83,12 +109,14 @@ private struct Sprite: View {
     var height: CGFloat
     var color: Color = Retro.navy
     var opacity: Double = 1
+    var dir = "Tamagotchi"
+    var original = false   // true면 PNG 원래 색을 그대로 쓴다 (에반게리온 도트)
 
     var body: some View {
-        if let image = SpriteCache.image(name) {
+        if let image = SpriteCache.image(name, dir: dir) {
             Image(nsImage: image)
-                .renderingMode(.template)
-                .interpolation(.none)
+                .renderingMode(original ? .original : .template)
+                .interpolation(.high)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(height: height)
@@ -103,11 +131,13 @@ private struct BouncingPet: View {
     let name: String
     let height: CGFloat
     let excited: Bool
+    var dir = "Tamagotchi"
+    var original = false
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: excited ? 0.25 : 0.7)) { context in
             let up = Int(context.date.timeIntervalSinceReferenceDate / (excited ? 0.25 : 0.7)) % 2 == 0
-            Sprite(name: name, height: height)
+            Sprite(name: name, height: height, dir: dir, original: original)
                 .offset(y: up ? 0 : -3)
         }
     }
@@ -540,7 +570,7 @@ private struct WorkBoardView: View {
                 VStack(spacing: 0) {
                     // Pinstripe Titlebar
                     HStack(spacing: 8) {
-                        Text(store.theme == .tamagotchi ? "AI_TAMAGOTCHI.EXE" : "AI_WORKBOARD.EXE")
+                        Text(store.theme.exeName)
                             .font(Retro.font(11, weight: .black))
                             .foregroundStyle(Retro.cream)
                             .padding(.horizontal, 6).padding(.vertical, 2)
@@ -586,6 +616,16 @@ private struct WorkBoardView: View {
                                 BouncingPet(name: "pet-kitty", height: 40,
                                             excited: store.items.contains { $0.status == .waiting })
                                     .padding(.trailing, 4)
+                            } else if store.theme == .eva {
+                                BouncingPet(name: "eva01-head", height: 40,
+                                            excited: store.items.contains { $0.status == .waiting },
+                                            dir: "Eva", original: true)
+                                    .padding(.trailing, 4)
+                            } else if store.theme == .chiikawa {
+                                BouncingPet(name: "chiikawa", height: 38,
+                                            excited: store.items.contains { $0.status == .waiting },
+                                            dir: "Chiikawa", original: true)
+                                    .padding(.trailing, 4)
                             }
                         }
                         .foregroundStyle(Retro.navy)
@@ -619,6 +659,10 @@ private struct WorkBoardView: View {
                                     VStack(spacing: 8) {
                                         if store.theme == .tamagotchi {
                                             Sprite(name: "pet-round", height: 44, color: Retro.muted)
+                                        } else if store.theme == .chiikawa {
+                                            Sprite(name: "kurimanju", height: 40, opacity: 0.7, dir: "Chiikawa", original: true)
+                                        } else if store.theme == .eva {
+                                            Sprite(name: "rei-face", height: 44, opacity: 0.55, dir: "Eva", original: true)
                                         } else {
                                             Text("☆").font(.system(size: 30))
                                         }
@@ -729,6 +773,8 @@ private struct GridBackdrop: View {
         switch theme {
         case .tamagotchi: tamagotchi
         case .classic: classic
+        case .eva: eva
+        case .chiikawa: chiikawa
         case .basic: Retro.desktop
         }
     }
@@ -768,6 +814,62 @@ private struct GridBackdrop: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
                 .offset(x: -18, y: 70)
         }
+    }
+
+    // 연분홍 바탕에 물방울 무늬, 치이카와 친구들이 목록 뒤로 비친다
+    private var chiikawa: some View {
+        ZStack(alignment: .topLeading) {
+            Retro.desktop
+            Canvas { context, size in
+                var dots = Path()
+                var row = 0
+                var y: CGFloat = 8
+                while y < size.height {
+                    var x: CGFloat = row % 2 == 0 ? 8 : 24
+                    while x < size.width {
+                        dots.addEllipse(in: CGRect(x: x, y: y, width: 4, height: 4))
+                        x += 32
+                    }
+                    y += 16
+                    row += 1
+                }
+                context.fill(dots, with: .color(Color.white.opacity(0.55)))
+            }
+            Sprite(name: "hachiware-heart", height: 150, opacity: 0.5, dir: "Chiikawa", original: true)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+                .offset(x: -22, y: 26)
+            Sprite(name: "usagi", height: 150, opacity: 0.5, dir: "Chiikawa", original: true)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                .offset(x: 24, y: 26)
+            Sprite(name: "kurimanju", height: 64, opacity: 0.5, dir: "Chiikawa", original: true)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                .offset(x: 20, y: -10)
+        }
+        .clipped()
+    }
+
+    // NERV 느낌의 연한 파랑 바탕 + 스캔라인 위에 레이(좌하단)와 초호기(우하단)가 목록 뒤로 비친다
+    private var eva: some View {
+        ZStack(alignment: .topLeading) {
+            Retro.desktop
+            Canvas { context, size in
+                var lines = Path()
+                var y: CGFloat = 0
+                while y < size.height {
+                    lines.addRect(CGRect(x: 0, y: y, width: size.width, height: 1))
+                    y += 4
+                }
+                context.fill(lines, with: .color(Retro.navy.opacity(0.05)))
+            }
+            Sprite(name: "rei", height: 230, opacity: 0.4, dir: "Eva", original: true)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                .offset(x: 18, y: 22)
+            Sprite(name: "eva01", height: 96, opacity: 0.55, dir: "Eva", original: true)
+                .scaleEffect(x: -1, y: 1)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .offset(x: -8, y: -14)
+        }
+        .clipped()
     }
 
     private var classic: some View {
@@ -900,8 +1002,17 @@ private struct WorkRow: View {
             }
         } label: {
             HStack(alignment: .top, spacing: 10) {
-                if theme == .tamagotchi {
-                    Sprite(name: item.provider == "Codex" ? "pet-cap" : item.provider == "Antigravity" ? "pet-frog" : "pet-cat", height: 22)
+                if theme == .tamagotchi || theme == .eva || theme == .chiikawa {
+                    Group {
+                        if theme == .chiikawa {
+                            Sprite(name: item.provider == "Codex" ? "usagi" : item.provider == "Antigravity" ? "hachiware-heart" : "chiikawa",
+                                   height: 24, dir: "Chiikawa", original: true)
+                        } else if theme == .eva {
+                            Sprite(name: item.provider == "Antigravity" ? "rei-face" : "eva01-head", height: 24, dir: "Eva", original: true)
+                        } else {
+                            Sprite(name: item.provider == "Codex" ? "pet-cap" : item.provider == "Antigravity" ? "pet-frog" : "pet-cat", height: 22)
+                        }
+                    }
                         .frame(width: 31, height: 31)
                         .background(item.provider == "Codex" ? Retro.yellow : item.provider == "Antigravity" ? Retro.mint : Retro.pink)
                         .overlay(Rectangle().stroke(Retro.navy, lineWidth: 1.5))

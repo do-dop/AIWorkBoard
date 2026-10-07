@@ -9,18 +9,24 @@ Mac 메뉴 막대에서 Codex, Claude, Antigravity 작업 상태를 모아 보�
 - 메뉴 막대 아이콘을 누르면 Codex·Claude·Antigravity 작업 현황 팝업이 열립니다.
 - 승인/확인이 필요한 작업이 있으면 아이콘이 통통 튑니다. Codex의 질문·권한 요청도 로컬 대화 기록에서 감지하며, 상태는 약 2초마다 갱신됩니다.
 - 안 본 완료 작업이 있으면 아이콘에 주황색 점이 표시됩니다.
-- 팝업 하단의 `THEME` 버튼으로 테마를 바꿉니다 (BASIC → SHIZUKU → TAMA). 선택은 저장됩니다.
+- 팝업 하단의 `THEME` 버튼으로 테마를 바꿉니다 (BASIC → SHIZUKU → TAMA → EVA → CHIIKAWA). 선택은 저장됩니다.
 
 ## 테마
 
 <p align="center">
   <img src="docs/screenshot-basic.png" alt="BASIC 테마" width="300">
   <img src="docs/screenshot-tamagotchi.png" alt="TAMA 테마" width="300">
+  <img src="docs/screenshot-eva.png" alt="EVA 테마" width="300">
+  <img src="docs/screenshot-chiikawa.png" alt="CHIIKAWA 테마" width="300">
 </p>
 
 - **BASIC** — 장식 없는 담백한 회색 계열
-- **SHIZUKU** — 기본 화면 (위 첫 스크린샷)
-- **TAMA** — LCD 연두 바탕에 다마고치 도트 캐릭터
+- **SHIZUKU** — 기본 화면 (위 첫 스크린샷). 회색 도트 바탕에 시즈쿠와 거미 도트
+- **TAMA** — LCD 연두 바탕에 다마고치 도트 캐릭터. 작업 행 아이콘이 캐릭터로 바뀝니다.
+- **EVA** — 연한 파랑 바탕에 보라색 제목줄, 레이와 초호기 도트 아트. 작업 행 아이콘은 초호기·레이 얼굴입니다.
+- **CHIIKAWA** — 연노랑 물방울 바탕에 머스터드색 제목줄, 치이카와·하치와레·우사기·쿠리만쥬 도트 아트. 작업 행 아이콘은 Codex 우사기, Claude 치이카와, Antigravity 하치와레입니다.
+
+"확인 필요" 작업이 있으면 TAMA·EVA·CHIIKAWA의 헤더 캐릭터가 더 빠르게 통통 튑니다.
 
 ## 설치
 
